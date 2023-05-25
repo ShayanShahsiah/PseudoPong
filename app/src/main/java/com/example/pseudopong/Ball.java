@@ -3,7 +3,10 @@ package com.example.pseudopong;
 import static java.lang.Math.cos;
 import static java.lang.Math.sin;
 
-import android.util.Log;
+class RelativePositioning {
+    double distOrthogonal = Double.NaN;
+    double distParallel = Double.NaN;
+}
 
 public class Ball extends PhysicalObject {
     private final double GRAV;
@@ -27,7 +30,7 @@ public class Ball extends PhysicalObject {
         setBoundsX(mRadius, viewWidth - mRadius, .85);
         setBoundsY(mRadius, Double.POSITIVE_INFINITY, .85);
 
-        GRAV = 9.8 * .75*viewWidth;
+        GRAV = 9.8 * .85*viewWidth;
         setAccelY(() -> GRAV);
 
         reset();
@@ -44,8 +47,6 @@ public class Ball extends PhysicalObject {
         double dy = y - mPaddle.getCenterY();
 
         double a = mPaddle.getRot();
-//        double sin = Math.sin(a);
-//        double cos = Math.cos(a);
 
         double dotProd = dx * cos(a) + dy * sin(a);
         double crossProd = dx * sin(a) - dy * cos(a);
@@ -57,7 +58,7 @@ public class Ball extends PhysicalObject {
     }
 
     @Override
-    protected boolean reflectionHandler() {
+    protected boolean doReflect() {
         RelativePositioning rp = calcRelPositioning(getPosToBeX(), getPosToBeY());
         boolean touches = rp.distOrthogonal > 0. && rp.distOrthogonal < mRadius &&
                 Math.abs(rp.distParallel) < .5 * mPaddle.getWidth();

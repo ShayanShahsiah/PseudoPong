@@ -45,6 +45,14 @@ public class Paddle extends PhysicalObject {
         mBallStuck = false;
     }
 
+    @Override
+    public void setVelToBeY(double velToBeY) {
+        double boundHigh = 2.5 * mViewHeight;
+        double boundLow = -2.5 * mViewHeight;
+        velToBeY = Math.max(Math.min(velToBeY, boundHigh), boundLow);
+        super.setVelToBeY(velToBeY);
+    }
+
     public void setRot(double newRot) {
         mRot = newRot;
     }
