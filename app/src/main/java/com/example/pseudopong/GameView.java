@@ -2,29 +2,36 @@ package com.example.pseudopong;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.LinearGradient;
+import android.graphics.Matrix;
 import android.graphics.Paint;
+import android.graphics.Shader;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
 import android.os.VibrationEffect;
 import android.os.Vibrator;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.MotionEvent;
-import android.view.SurfaceHolder;
-import android.view.SurfaceView;
+import android.view.View;
 
-public class GameView extends SurfaceView {
+import androidx.core.content.res.ResourcesCompat;
+
+public class GameView extends View {
 
     private boolean mRunning;
-    private Thread mGameThread = null;
     private Thread mUpdateThread = null;
 
     private Paddle mPaddle;
     private Ball mBall;
     private int mViewWidth, mViewHeight;
-    private final SurfaceHolder mSurfaceHolder;
-    private final Paint mPaint;
+    private final Paint mPaintBall;
     private final SensorHandler mSensorHandler = new SensorHandler();
+    private boolean didSetSize = false;
+    private Bitmap mBitmap;
+    private final Matrix mMatrix;
 
     public GameView(Context context) {
         this(context, null);
@@ -32,40 +39,66 @@ public class GameView extends SurfaceView {
 
     public GameView(Context context, AttributeSet attrs) {
         super(context, attrs);
-        mSurfaceHolder = getHolder();
-        mPaint = new Paint();
-        mPaint.setColor(Color.DKGRAY);
+        mPaintBall = new Paint();
+        mPaintBall.setColor(
+                ResourcesCompat.getColor(
+                        getResources(),
+                        R.color.ball_color,
+                        getContext().getTheme()
+                )
+        );
+        mPaintBall.setAntiAlias(true);
+
+        mMatrix = new Matrix();
+    }
+
+    private static Bitmap drawableToBitmap (Drawable drawable) {
+
+        if (drawable instanceof BitmapDrawable) {
+            return ((BitmapDrawable)drawable).getBitmap();
+        }
+
+        Bitmap bitmap = Bitmap.createBitmap(drawable.getIntrinsicWidth(), drawable.getIntrinsicHeight(), Bitmap.Config.ARGB_8888);
+        Canvas canvas = new Canvas(bitmap);
+        drawable.setBounds(0, 0, canvas.getWidth(), canvas.getHeight());
+        drawable.draw(canvas);
+
+        return bitmap;
     }
 
     public void resume() {
         mRunning = true;
-        
-        mGameThread = new Thread(this::updateUI);
-        mGameThread.start();
 
         mUpdateThread = new Thread(this::updatePositions);
         mUpdateThread.start();
+
+        mBitmap = drawableToBitmap(
+                ResourcesCompat.getDrawable(
+                        getResources(),
+                        R.drawable.paddle_drawable,
+                        getContext().getTheme()
+                )
+        );
     }
 
     @Override
     protected void onSizeChanged(int w, int h, int oldw, int oldh) {
-        Log.e("onSizeChanged", "Size changed!");
         super.onSizeChanged(w, h, oldw, oldh);
 
         mViewWidth = w;
         mViewHeight = h;
 
-        mPaddle = new Paddle(mViewWidth, mViewHeight);
+        mPaddle = new Paddle(mViewWidth, mViewHeight, getResources());
         mBall = new Ball(mViewWidth, mViewHeight);
 
         mBall.setPaddle(mPaddle);
         mBall.setContactSoundEffectHandler(this::contactSoundEffectHandler);
+        didSetSize = true;
     }
 
     public void pause() {
         mRunning = false;
         try {
-            mGameThread.join();
             mUpdateThread.join();
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
@@ -91,7 +124,10 @@ public class GameView extends SurfaceView {
      */
     private void updatePositions() {
         try {
-            Thread.sleep(300);
+            while (!didSetSize)
+                Thread.sleep(1000);
+
+            Thread.sleep(500);
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
@@ -118,31 +154,28 @@ public class GameView extends SurfaceView {
         }
     }
 
-    /**
-     * Runs in a separate thread.
-     * All drawing happens here.
-     */
-    private void updateUI() {
-        Canvas canvas;
+    @Override
+    protected void onDraw(Canvas canvas) {
+        canvas.save();
 
-        while (mRunning) {
-            invalidate();
+        canvas.drawColor(Color.WHITE);
+        canvas.drawCircle(
+                (float) mBall.getX(), (float) mBall.getY(),
+                (float) mBall.getRadius(), mPaintBall);
 
-            if (mSurfaceHolder.getSurface().isValid()) {
-                canvas = mSurfaceHolder.lockHardwareCanvas();
-                canvas.save();
-                
-                canvas.drawColor(Color.WHITE);
-                canvas.drawCircle(
-                        (float) mBall.getX(), (float) mBall.getY(),
-                        (float) mBall.getRadius(), mPaint);
-                canvas.rotate((float) (180. / Math.PI * mPaddle.getRot()), mPaddle.getCenterX(), mPaddle.getCenterY());
-                canvas.drawRoundRect(mPaddle.getRectF(), 10f, 10f, mPaint);
+        /*
+        // Draw paddle as a simple rect instead of bitmap:
+        canvas.rotate((float) (180. / Math.PI * mPaddle.getRot()), mPaddle.getCenterX(), mPaddle.getCenterY());
+        canvas.drawRoundRect(mPaddle.getRectF(), 10f, 10f, mPaintPaddle);
+        */
 
-                canvas.restore();
-                mSurfaceHolder.unlockCanvasAndPost(canvas);
-            }
-        }
+        mMatrix.reset();
+        mMatrix.postTranslate((float) mPaddle.getX(), (float) mPaddle.getY());
+        mMatrix.postRotate((float) (180. / Math.PI * mPaddle.getRot()), mPaddle.getCenterX(), mPaddle.getCenterY());
+        canvas.drawBitmap(mBitmap, mMatrix, null);
+
+        canvas.restore();
+        invalidate();
     }
 
     public void contactSoundEffectHandler() {

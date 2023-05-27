@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="paddle_height">17dp</dimen>
+    <dimen name="paddle_width">130dp</dimen>
+    <dimen name="ball_radius">6dp</dimen>
+</resources>

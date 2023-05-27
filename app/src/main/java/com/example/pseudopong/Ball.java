@@ -12,7 +12,7 @@ public class Ball extends PhysicalObject {
     private final double GRAV;
     private final double mRadius;
     private Runnable mContactSoundEffectHandler;
-    final int mViewWidth, mViewHeight;
+    private final int mViewWidth, mViewHeight;
     private Paddle mPaddle;
 
     public Ball(int viewWidth, int viewHeight) {
@@ -30,7 +30,7 @@ public class Ball extends PhysicalObject {
         setBoundsX(mRadius, viewWidth - mRadius, .85);
         setBoundsY(mRadius, Double.POSITIVE_INFINITY, .85);
 
-        GRAV = 9.8 * .85*viewWidth;
+        GRAV = 9.8 * .9*viewWidth;
         setAccelY(() -> GRAV);
 
         reset();
@@ -43,8 +43,8 @@ public class Ball extends PhysicalObject {
 
     public RelativePositioning calcRelPositioning(double x, double y) {
         RelativePositioning res = new RelativePositioning();
-        double dx = x - mPaddle.getCenterX();
-        double dy = y - mPaddle.getCenterY();
+        double dx = x - mPaddle.getRefX();
+        double dy = y - mPaddle.getRefY();
 
         double a = mPaddle.getRot();
 
@@ -65,10 +65,10 @@ public class Ball extends PhysicalObject {
         if (touches) {
             double a = mPaddle.getRot();
             double v1x = getVelToBeX();
-            double v1y = getVelToBeY();// - 1.1 * mPaddle.getVelY();
+            double v1y = getVelToBeY();
 
-            double v2x = .5 * mPaddle.getVelX();
-            double v2y = .5 * mPaddle.getVelY();
+            double v2x = .55 * mPaddle.getVelX();
+            double v2y = .55 * mPaddle.getVelY();
 
             if (getVelToBeY() > mViewWidth)
                 mContactSoundEffectHandler.run();
@@ -79,8 +79,8 @@ public class Ball extends PhysicalObject {
             setVelToBeX( .5 * ((1.+cor) * wannabeVelX + (1.-cor) * v1x) );
             setVelToBeY( .5 * ((1.+cor) * wannabeVelY + (1.-cor) * v1y) );
 
-            setPosToBeX(mPaddle.getCenterX() + rp.distParallel * cos(a) + mRadius * sin(a));
-            setPosToBeY(mPaddle.getCenterY() + rp.distParallel * sin(a) - mRadius * cos(a));
+            setPosToBeX(mPaddle.getRefX() + rp.distParallel * cos(a) + mRadius * sin(a));
+            setPosToBeY(mPaddle.getRefY() + rp.distParallel * sin(a) - mRadius * cos(a));
 
             return true;
 

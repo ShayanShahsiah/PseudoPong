@@ -1,5 +1,6 @@
 package com.example.pseudopong;
 
+import android.content.res.Resources;
 import android.graphics.RectF;
 
 public class Paddle extends PhysicalObject {
@@ -7,17 +8,17 @@ public class Paddle extends PhysicalObject {
     private final int mWidth, mHeight;
     private double mRot;
     private boolean mBallStuck;
-    final int mViewWidth, mViewHeight;
+    private final int mViewWidth, mViewHeight;
 
-    public Paddle(int viewWidth, int viewHeight) {
+    public Paddle(int viewWidth, int viewHeight, Resources res) {
         mViewWidth = viewWidth;
         mViewHeight = viewHeight;
 
-        mWidth = viewWidth/3;
-        mHeight = mWidth/10;
+        mWidth = res.getDimensionPixelSize(R.dimen.paddle_width);//viewWidth/3;
+        mHeight = res.getDimensionPixelSize(R.dimen.paddle_height);//viewWidth/10;
 
         double x0 = .5 * viewWidth - .5 * mWidth;
-        double y0 = .85 * viewHeight;
+        double y0 = .82 * viewHeight;
 
         K_LOW = .25 * viewHeight;
         K_HIGH = .75 * viewHeight;
@@ -47,8 +48,8 @@ public class Paddle extends PhysicalObject {
 
     @Override
     public void setVelToBeY(double velToBeY) {
-        double boundHigh = 2.5 * mViewHeight;
-        double boundLow = -2.5 * mViewHeight;
+        double boundHigh = 3. * mViewHeight;
+        double boundLow = -3. * mViewHeight;
         velToBeY = Math.max(Math.min(velToBeY, boundHigh), boundLow);
         super.setVelToBeY(velToBeY);
     }
@@ -73,6 +74,14 @@ public class Paddle extends PhysicalObject {
 
     public int getCenterY() {
         return (int) (getY() + .5*mHeight);
+    }
+
+    public int getRefX() {
+        return (int) (getCenterX() + .45*mHeight * Math.sin(mRot));
+    }
+
+    public int getRefY() {
+        return (int) (getCenterY() - .45*mHeight * Math.cos(mRot));
     }
 
     public boolean isBallStuck() {

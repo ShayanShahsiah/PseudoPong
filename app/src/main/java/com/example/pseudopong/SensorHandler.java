@@ -3,13 +3,12 @@ package com.example.pseudopong;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
-import android.util.Log;
 
 public class SensorHandler implements SensorEventListener {
     private double[] mOrientation, mOrientation0;
     private double[] mOmega;
     private double mAccelX, mAccelY;
-    private long mTickGyro;
+    private long mTick;
 
     {
         reset();
@@ -21,7 +20,7 @@ public class SensorHandler implements SensorEventListener {
         mOmega = new double[]{0., 0., 0.};
         mAccelX = 0.;
         mAccelY = 0.;
-        mTickGyro = 0L;
+        mTick = 0L;
     }
 
     @Override
@@ -29,8 +28,8 @@ public class SensorHandler implements SensorEventListener {
         switch (event.sensor.getType()) {
             case Sensor.TYPE_GYROSCOPE: {
                 long tock = event.timestamp;
-                double dt = mTickGyro == 0L ? 0. : (tock - mTickGyro) * 1e-9;
-                mTickGyro = tock;
+                double dt = mTick == 0L ? 0. : (tock - mTick) * 1e-9;
+                mTick = tock;
 
                 mOmega[0] = event.values[0];
                 mOmega[1] = event.values[1];
