@@ -89,7 +89,7 @@ public class GameView extends View {
         mViewHeight = h;
 
         mPaddle = new Paddle(mViewWidth, mViewHeight, getResources());
-        mBall = new Ball(mViewWidth, mViewHeight);
+        mBall = new Ball(mViewWidth, mViewHeight, getResources());
 
         mBall.setPaddle(mPaddle);
         mBall.setContactSoundEffectHandler(this::contactSoundEffectHandler);

@@ -3,6 +3,8 @@ package com.example.pseudopong;
 import static java.lang.Math.cos;
 import static java.lang.Math.sin;
 
+import android.content.res.Resources;
+
 class RelativePositioning {
     double distOrthogonal = Double.NaN;
     double distParallel = Double.NaN;
@@ -15,11 +17,11 @@ public class Ball extends PhysicalObject {
     private final int mViewWidth, mViewHeight;
     private Paddle mPaddle;
 
-    public Ball(int viewWidth, int viewHeight) {
+    public Ball(int viewWidth, int viewHeight, Resources res) {
         mViewWidth = viewWidth;
         mViewHeight = viewHeight;
 
-        mRadius = viewWidth/28.;
+        mRadius = res.getDimensionPixelOffset(R.dimen.ball_radius);
 
         double x0 = viewWidth/2.;
         double y0 = viewHeight/3.;
